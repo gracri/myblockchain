@@ -1,8 +1,13 @@
 import hashlib
 import json
+
 from time import time
+from urllib.parse import urlparse
 from uuid import uuid4
-from flask import Flask
+
+import requests
+from flask import Flask, jsonify, request
+
 
 class Blockchain(object):
 
@@ -28,29 +33,24 @@ class Blockchain(object):
 
         return block
 
+
+
     # Adds a new transaction to the list of transactions
     def new_transaction(self, sender, recipient, amount):
+
         """
-
         Creates a new transaction to go into the next mined block.
-
         :param sender: <str> Address of the sender
-
         :param recipient: <str> Address of the recipient
-
         :param amount: <int> amount
-
         :return: <int> index of the block that holds the transaction
-
         """
 
         self.currentTransactions.append({
 
             'sender': sender,
-
-            'recipient': recipient,
-
-            'amount': amount,
+            'recipient' : recipient,
+            'amount' : amount,
 
         })
 
@@ -127,10 +127,20 @@ def mine():
 
     return "We'll mine a new Block"
 
-@app.route('/transactions/new', methods=['POST'])
-def new_transaction():
+@app.route('/transactions/new', methods = ['POST'])
+def new_transactions():
+    values = request.get_json()
 
-    return "We'll add a new transaction"
+    # Check that the required fields are in the POSTed data
+    required = ['sender', 'recipient', 'amount']
+    if not all (k in values for k in required):
+        return 'Missing values: {k}', 400
+
+    # Create a new transaction
+    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+
+    response = {'message': f'Transaction will be added to Block {index}'}
+    return jsonify(response), 200
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
@@ -146,4 +156,4 @@ def full_chain():
     return jsonify(response), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
