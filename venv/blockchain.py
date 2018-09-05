@@ -45,13 +45,10 @@ class Blockchain(object):
         :param amount: <int> amount
         :return: <int> index of the block that holds the transaction
         """
-
         self.currentTransactions.append({
-
             'sender': sender,
             'recipient' : recipient,
             'amount' : amount,
-
         })
 
         return self.last_block['index'] + 1
@@ -98,7 +95,6 @@ class Blockchain(object):
     def valid_proof(last_proof, proof, last_hash):
         """
         Validates the Proof: Does hash(last_proof, proof) contains 4 leading zeroes?
-
         :param last_proof: <int> Previous proof
         :param proof: <int> current proof
         :param last_hash: <str> The hash of the previous block
@@ -122,11 +118,6 @@ node_identifier = str(uuid4()).replace('-', '')
 
 blockchain = Blockchain()
 
-@app.route('/mine', methods=['GET'])
-def mine():
-
-    return "We'll mine a new Block"
-
 @app.route('/transactions/new', methods = ['POST'])
 def new_transactions():
     values = request.get_json()
@@ -146,14 +137,40 @@ def new_transactions():
 def full_chain():
 
     response = {
-
         'chain': blockchain.chain,
-
         'length': len(blockchain.chain),
-
     }
 
     return jsonify(response), 200
+
+@app.route('/mine', methods=['GET'])
+def mine():
+    # We will run the proof of work algorithm to get the next proof..
+    last_block = blockchain.last_block
+    proof = blockchain.proof_of_work(last_block)
+
+    # We must receive a reward for finding the proof.
+    # The sender is "0" to signify that this node has mined a new coin.
+    blockchain.new_transaction(
+        sender = "0",
+        recipient=node_identifier,
+        amount=1,
+    )
+
+    # Forge the new block by adding it to the chain.
+    previous_hash = blockchain.hash(last_block)
+    block = blockchain.new_block(proof, previous_hash)
+
+    response = {
+        'message': 'New block forged',
+        'index': block['index'],
+        'transactions': block['transactions'],
+        'proof': block['proof'],
+        'previous_hash': block['previous_hash'],
+    }
+
+    return jsonify(response), 200
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
