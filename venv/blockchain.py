@@ -30,15 +30,15 @@ class Blockchain(object):
     def new_transaction(self, sender, recipient, amount):
         """
 
-        Creates a new transaction to go into the next mined Block
+        Creates a new transaction to go into the next mined block.
 
-        :param sender: <str> Address of the Sender
+        :param sender: <str> Address of the sender
 
-        :param recipient: <str> Address of the Recipient
+        :param recipient: <str> Address of the recipient
 
-        :param amount: <int> Amount
+        :param amount: <int> amount
 
-        :return: <int> The index of the Block that will hold this transaction
+        :return: <int> index of the block that holds the transaction
 
         """
 
@@ -54,14 +54,40 @@ class Blockchain(object):
 
         return self.last_block['index'] + 1
 
-    @staticmethod
-    def hash(block):
-        # Hashes a Block
-
-        pass
-
     @property
     def last_block(self):
-        # Returns the last Block in the chain
+        # Returns the last block in the chain.
 
-        pass
+        return self.chain[-1]
+
+    @staticmethod
+    def hash(block):
+        """
+        Creates a SHA-256 hash of a block.
+
+        :param block: <dict> block
+        :return: <str> hash of the block.
+        """
+
+        # Make sure the dictionary is Ordered, otherwise we will have inconsistent hashes
+        block_string = json.dumps(block, sort_keys=True).encode()
+
+        return hashlib.sha256(block_string).hexdigest()
+
+    def proof_of_work(self, last_block):
+        """
+        Simple proof of work algorithm
+        - find a number 'p' such that hash(pp') contains last 4 leading zeroes, where p is the previous p'
+        - p is the previous proof, and p' is the new proof
+        :param last_block: last block
+        :return: <int>
+        """
+
+        last_proof = last_block['proof']
+        last_hash = self.hash(last_block)
+        proof = 0
+
+        while self.valid_proof(last_proof, proof, last_hash) is False:
+            proof += 1
+
+        return proof
