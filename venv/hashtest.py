@@ -1,15 +1,31 @@
 from hashlib import sha256
 
+
+
 x = 5
+
 y = 0
 
-# Keep incrementing until the last 4 digits ends with a 0000.. which would yield 5 * 54455
-while sha256(f'{x*y}'.encode()).hexdigest()[:4] != "0000":
-   y += 1
+difficulty = 4
+
 
 
 def create_hash(x, y):
-   return sha256(f'{x*y}'.encode()).hexdigest()
+
+    return sha256(f'{x*y}'.encode()).hexdigest()
 
 
-print (f'The solution for y = {y} and hash is:  {create_hash(x, y)}')
+
+# Keep incrementing until the last 4 digits ends with 0000
+
+while (create_hash(x, y))[:difficulty] != "0" * difficulty:
+
+    y += 1
+
+    print(create_hash(x, y))
+
+
+
+
+
+print (f'The solution for y = {y} and hash is: {create_hash(x, y)}')
