@@ -143,6 +143,10 @@ def full_chain():
 
     return jsonify(response), 200
 
+@app.route('/transactions/pending', methods=['GET'])
+def pending():
+    return jsonify(blockchain.currentTransactions),200
+
 @app.route('/mine', methods=['GET'])
 def mine():
     # We will run the proof of work algorithm to get the next proof..
